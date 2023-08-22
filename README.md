@@ -26,13 +26,16 @@ pip install opencv-python dlib Pillow
 ## Usage
 
 ### Resize Images in a Directory
+
+If no output directory is specified, the resized images will be saved in a "output" directory inside the input directory.
+
 ```bash
-python bulk_image_resizer.py --dir /path/to/image/directory --output /path/to/output/directory --size 224
+python main.py --dir /path/to/image/directory --output /path/to/output/directory --size 224
 ```
 
 ### Resize a Single Image
 ```bash
-python bulk_image_resizer.py --file /path/to/single/image.jpg --output /path/to/output/directory --size 224
+python main.py --file /path/to/single/image.jpg --output /path/to/output/directory --size 224
 ```
 
 ### Options
