@@ -1,7 +1,7 @@
 
-# Bulk Image Resizer
+# FaceCrop
 
-Bulk Image Resizer is a Command Line Interface (CLI) tool that allows you to resize multiple images or a single image to a specified square size. The tool uses face detection to center the face in the resized image, ensuring that the primary subject of the photo is the focal point.
+FaceCrop is a Command Line Interface (CLI) tool that allows you to resize multiple images or a single image to a specified square size. The tool uses face detection to center the face in the resized image, ensuring that the primary subject of the photo is the focal point.
 
 ## Features
 - Bulk resize images in a directory or a single image.
