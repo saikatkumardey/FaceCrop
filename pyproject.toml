@@ -1,10 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "facecrop"
 version = "0.1.0"
 description = "Face-centered intelligent image resizing CLI tool"
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = {text = "MIT"}
+authors = [
+    {name = "FaceCrop Contributors"}
+]
+maintainers = [
+    {name = "FaceCrop Contributors"}
+]
+keywords = ["image", "face-detection", "crop", "resize", "cli", "dlib"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
 dependencies = [
     "opencv-python>=4.8.0",
     "dlib>=19.24.0",
@@ -13,9 +39,46 @@ dependencies = [
     "loguru>=0.7.0",
 ]
 
-[project.scripts]
-facecrop = "main:main"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[project.urls]
+Homepage = "https://github.com/saikatkumardey/FaceCrop"
+Repository = "https://github.com/saikatkumardey/FaceCrop"
+Issues = "https://github.com/saikatkumardey/FaceCrop/issues"
+Changelog = "https://github.com/saikatkumardey/FaceCrop/releases"
+
+[project.scripts]
+facecrop = "facecrop.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/facecrop"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra -q --strict-markers --cov=facecrop --cov-report=term-missing"
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

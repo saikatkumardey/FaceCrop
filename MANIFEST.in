@@ -1,0 +1,10 @@
+include README.md
+include LICENSE.md
+include CONTRIBUTING.md
+include CLAUDE.md
+include pyproject.toml
+
+recursive-include src/facecrop *.py
+recursive-include tests *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

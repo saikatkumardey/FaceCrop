@@ -1,5 +1,5 @@
-import os
-import argparse
+"""Core image processing functionality."""
+
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 import dlib
@@ -8,15 +8,26 @@ from PIL import Image
 from tqdm import tqdm
 from loguru import logger
 
-logger.add("facecrop.log", rotation="10 MB")
-
 detector = dlib.get_frontal_face_detector()
 SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tiff', '.tif'}
 
+
 def is_valid_image(path):
+    """Check if file has a supported image extension."""
     return Path(path).suffix.lower() in SUPPORTED_FORMATS
 
-def resize_and_center_face(image_path, size):
+
+def resize_and_center_face(image_path, size=224):
+    """
+    Resize image to square, centered on detected face.
+
+    Args:
+        image_path: Path to input image
+        size: Output size in pixels (square)
+
+    Returns:
+        PIL Image if successful, None otherwise
+    """
     try:
         if not Path(image_path).exists():
             logger.error(f"File not found: {image_path}")
@@ -26,7 +37,7 @@ def resize_and_center_face(image_path, size):
             logger.error(f"Unsupported format: {image_path}")
             return None
 
-        image = cv2.imread(image_path)
+        image = cv2.imread(str(image_path))
         if image is None:
             logger.error(f"Could not read: {image_path}")
             return None
@@ -37,9 +48,10 @@ def resize_and_center_face(image_path, size):
         if faces:
             logger.info(f"Found {len(faces)} face(s) in {Path(image_path).name}")
             face = faces[0]
-            center_x, center_y = (face.left() + face.right()) // 2, (face.top() + face.bottom()) // 2
+            center_x = (face.left() + face.right()) // 2
+            center_y = (face.top() + face.bottom()) // 2
         else:
-            logger.warning(f"No faces found in {Path(image_path).name}, using center crop")
+            logger.warning(f"No faces in {Path(image_path).name}, using center crop")
             center_y, center_x = image.shape[0] // 2, image.shape[1] // 2
 
         left = max(center_x - size // 2, 0)
@@ -59,7 +71,9 @@ def resize_and_center_face(image_path, size):
         logger.error(f"Error processing {image_path}: {e}")
         return None
 
-def process_single_image(args):
+
+def _process_single(args):
+    """Process single image (multiprocessing wrapper)."""
     image_path, size, output_folder = args
     try:
         resized = resize_and_center_face(image_path, size)
@@ -75,31 +89,51 @@ def process_single_image(args):
         logger.error(f"Error saving {image_path}: {e}")
         return (False, image_path, None)
 
-def bulk_resize(input_path, size, output_folder, is_directory=True, workers=None):
-    if is_directory:
-        if not Path(input_path).exists():
-            logger.error(f"Directory not found: {input_path}")
-            return
 
-        image_paths = [str(p) for p in Path(input_path).iterdir()
+def process_images(input_path, size=224, output_folder=None, workers=None):
+    """
+    Process multiple images with face detection and resizing.
+
+    Args:
+        input_path: Path to image file or directory
+        size: Output size in pixels (square)
+        output_folder: Output directory (default: ./output)
+        workers: Number of worker processes (None = auto)
+
+    Returns:
+        Tuple of (successful_count, failed_count)
+    """
+    input_path = Path(input_path)
+    is_directory = input_path.is_dir()
+
+    if is_directory:
+        if not input_path.exists():
+            logger.error(f"Directory not found: {input_path}")
+            return (0, 0)
+
+        image_paths = [str(p) for p in input_path.iterdir()
                       if p.is_file() and is_valid_image(str(p))]
 
         if not image_paths:
             logger.error(f"No valid images in {input_path}")
             logger.info(f"Supported: {', '.join(SUPPORTED_FORMATS)}")
-            return
+            return (0, 0)
 
         logger.info(f"Found {len(image_paths)} image(s)")
     else:
-        if not Path(input_path).exists():
+        if not input_path.exists():
             logger.error(f"File not found: {input_path}")
-            return
-        if not is_valid_image(input_path):
+            return (0, 0)
+        if not is_valid_image(str(input_path)):
             logger.error(f"Unsupported format: {input_path}")
-            return
-        image_paths = [input_path]
+            return (0, 0)
+        image_paths = [str(input_path)]
 
-    output_folder = Path(output_folder or (Path(input_path) / "output" if is_directory else Path(input_path).parent / "output"))
+    if output_folder is None:
+        output_folder = input_path / "output" if is_directory else input_path.parent / "output"
+    else:
+        output_folder = Path(output_folder)
+
     output_folder.mkdir(parents=True, exist_ok=True)
 
     workers = workers or min(cpu_count(), len(image_paths))
@@ -108,55 +142,19 @@ def bulk_resize(input_path, size, output_folder, is_directory=True, workers=None
     args_list = [(path, size, str(output_folder)) for path in image_paths]
 
     if workers == 1 or len(image_paths) == 1:
-        results = [process_single_image(args) for args in tqdm(args_list, desc="Processing", unit="img")]
+        results = [_process_single(args) for args in tqdm(args_list, desc="Processing", unit="img")]
     else:
         with Pool(workers) as pool:
-            results = list(tqdm(pool.imap(process_single_image, args_list),
+            results = list(tqdm(pool.imap(_process_single, args_list),
                               total=len(args_list), desc="Processing", unit="img"))
 
     successful = sum(1 for r in results if r[0])
+    failed = len(results) - successful
+
     logger.info(f"Processed: {successful}/{len(image_paths)}")
 
     for success, path, _ in results:
         if not success:
             logger.warning(f"Failed: {path}")
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="FaceCrop: Face-centered image resizing",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Supported formats: jpg, jpeg, png, bmp, webp, tiff, tif"
-    )
-
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument('--dir', help='Directory path')
-    input_group.add_argument('--file', help='File path')
-    parser.add_argument('--output', help='Output directory')
-    parser.add_argument('--size', type=int, default=224, help='Output size (default: 224)')
-    parser.add_argument('--workers', type=int, help='Worker processes (default: auto)')
-
-    args = parser.parse_args()
-
-    if not 64 <= args.size <= 4096:
-        logger.error(f"Size must be 64-4096, got {args.size}")
-        return 1
-
-    if args.workers and args.workers < 1:
-        logger.error(f"Workers must be >= 1, got {args.workers}")
-        return 1
-
-    try:
-        logger.info("FaceCrop starting")
-        bulk_resize(args.dir or args.file, args.size, args.output,
-                   is_directory=bool(args.dir), workers=args.workers)
-        logger.info("Complete")
-        return 0
-    except KeyboardInterrupt:
-        logger.warning("Interrupted")
-        return 1
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return 1
-
-if __name__ == '__main__':
-    exit(main())
+    return (successful, failed)
