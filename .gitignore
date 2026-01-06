@@ -161,3 +161,7 @@ cython_debug/
 
 # Mac specific
 *.DS_Store
+
+# FaceCrop specific
+facecrop.log
+output/
