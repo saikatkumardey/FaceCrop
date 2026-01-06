@@ -1,8 +1,9 @@
 """Command-line interface for FaceCrop."""
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 from loguru import logger
 
 from . import __version__

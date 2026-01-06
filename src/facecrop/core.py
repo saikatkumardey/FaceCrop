@@ -1,12 +1,13 @@
 """Core image processing functionality."""
 
-from pathlib import Path
 from multiprocessing import Pool, cpu_count
-import dlib
+from pathlib import Path
+
 import cv2
+import dlib
+from loguru import logger
 from PIL import Image
 from tqdm import tqdm
-from loguru import logger
 
 detector = dlib.get_frontal_face_detector()
 SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tiff', '.tif'}
