@@ -1,12 +1,13 @@
 """Core image processing functionality."""
 
-from pathlib import Path
 from multiprocessing import Pool, cpu_count
-import dlib
+from pathlib import Path
+
 import cv2
+import dlib
+from loguru import logger
 from PIL import Image
 from tqdm import tqdm
-from loguru import logger
 
 detector = dlib.get_frontal_face_detector()
 SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tiff', '.tif'}
@@ -136,7 +137,7 @@ def process_images(input_path, size=224, output_folder=None, workers=None):
 
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    workers = workers or min(cpu_count(), len(image_paths))
+    workers = workers if workers is not None else min(cpu_count(), len(image_paths))
     logger.info(f"Processing with {workers} worker(s)")
 
     args_list = [(path, size, str(output_folder)) for path in image_paths]

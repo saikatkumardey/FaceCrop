@@ -1,16 +1,17 @@
 """Tests for core functionality."""
 
-import pytest
-from pathlib import Path
-from PIL import Image
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
+
+import pytest
+from PIL import Image
 
 from facecrop.core import (
+    SUPPORTED_FORMATS,
     is_valid_image,
-    resize_and_center_face,
     process_images,
-    SUPPORTED_FORMATS
+    resize_and_center_face,
 )
 
 

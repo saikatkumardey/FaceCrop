@@ -1,13 +1,13 @@
 """Tests for CLI functionality."""
 
-import pytest
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
+
+import pytest
 from PIL import Image
 
-from facecrop.cli import parse_args, main
-from facecrop import __version__
+from facecrop.cli import main, parse_args
 
 
 class TestParseArgs:

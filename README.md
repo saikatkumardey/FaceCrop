@@ -158,18 +158,24 @@ pytest -n auto
 Contributions are welcome! Please check out our [Contributing Guide](CONTRIBUTING.md).
 
 ```bash
-# Setup development environment
+# Quick setup with Make (uses uv - super fast!)
 git clone https://github.com/saikatkumardey/FaceCrop.git
 cd FaceCrop
-pip install -e ".[dev]"
+make dev
 
-# Run formatters and linters
-black src/ tests/
-ruff check src/ tests/
-mypy src/
+# Or manual setup
+uv venv && uv pip install -e ".[dev]"
 
-# Run tests
-pytest
+# Run tests (10-100x faster than pip!)
+make test          # Current Python version
+make test-all      # All Python 3.8-3.12 versions
+
+# Code quality
+make lint          # Run all linters
+make format        # Auto-format code
+
+# Build package
+make build
 ```
 
 ## 📝 License
