@@ -78,7 +78,7 @@ def main(args=None):
         return 1
 
     # Validate workers
-    if parsed_args.workers and parsed_args.workers < 1:
+    if parsed_args.workers is not None and parsed_args.workers < 1:
         logger.error(f"Workers must be >= 1, got {parsed_args.workers}")
         return 1
 

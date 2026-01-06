@@ -136,7 +136,7 @@ def process_images(input_path, size=224, output_folder=None, workers=None):
 
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    workers = workers or min(cpu_count(), len(image_paths))
+    workers = workers if workers is not None else min(cpu_count(), len(image_paths))
     logger.info(f"Processing with {workers} worker(s)")
 
     args_list = [(path, size, str(output_folder)) for path in image_paths]
