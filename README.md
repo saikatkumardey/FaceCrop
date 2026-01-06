@@ -1,54 +1,188 @@
-
 # FaceCrop
 
-FaceCrop is a Command Line Interface (CLI) tool that allows you to resize multiple images or a single image to a specified square size. The tool uses face detection to center the face in the resized image, ensuring that the primary subject of the photo is the focal point.
+[![PyPI version](https://badge.fury.io/py/facecrop.svg)](https://pypi.org/project/facecrop/)
+[![Python](https://img.shields.io/pypi/pyversions/facecrop.svg)](https://pypi.org/project/facecrop/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-## Features
-- Bulk resize images in a directory or a single image
-- Face-centered intelligent cropping with dlib
-- Multiprocessing support for fast batch processing
-- Progress indicators and structured logging
-- Automatic fallback to center crop when no face detected
+**FaceCrop** is a powerful CLI tool for intelligent, face-centered image resizing. Using dlib's face detection, it automatically crops and resizes images to ensure faces remain the focal point—perfect for profile pictures, thumbnails, and batch image processing.
 
-## Installation
+## ✨ Features
 
-### Using uv (recommended)
+- 🎯 **Face-centered cropping** - Automatic face detection with dlib
+- ⚡ **Fast batch processing** - Multiprocessing support for high throughput
+- 📊 **Progress tracking** - Real-time progress bars and structured logging
+- 🔄 **Smart fallback** - Center crop when no face detected
+- 🎨 **Format support** - JPG, PNG, BMP, WebP, TIFF
+- 🚀 **Production-ready** - Robust error handling and validation
+
+## 📦 Installation
+
+### From PyPI (recommended)
+
+```bash
+pip install facecrop
+```
+
+### From source with uv
 
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
+# Clone and install
+git clone https://github.com/saikatkumardey/FaceCrop.git
+cd FaceCrop
 uv pip install -e .
 ```
 
-### Using pip
+### Development installation
 
 ```bash
-pip install opencv-python dlib Pillow tqdm loguru
+pip install -e ".[dev]"
 ```
 
-## Usage
-
-### Resize Images in a Directory
-
-If no output directory is specified, the resized images will be saved in a "output" directory inside the input directory.
+## 🚀 Quick Start
 
 ```bash
-python main.py --dir /path/to/image/directory --output /path/to/output/directory --size 224
+# Process a single image
+facecrop image.jpg
+
+# Process entire directory
+facecrop photos/
+
+# Custom output size and location
+facecrop photos/ --size 512 --output results/
+
+# Use specific number of CPU cores
+facecrop photos/ --workers 8
 ```
 
-### Resize a Single Image
+## 📖 Usage
+
+### Basic Commands
+
 ```bash
-python main.py --file /path/to/single/image.jpg --output /path/to/output/directory --size 224
+# Single image (outputs to ./output/)
+facecrop portrait.jpg
+
+# Directory processing
+facecrop my_photos/
+
+# Custom output directory
+facecrop photos/ -o processed/
+
+# Custom size (64-4096 pixels)
+facecrop photos/ -s 384
+
+# Control parallelism
+facecrop photos/ -w 4
 ```
 
-### Options
-- `--dir`: Path to the directory containing images
-- `--file`: Path to a single image file
-- `--output`: (Optional) Path to the output directory
-- `--size`: (Optional) Size of the output square image (default: 224)
-- `--workers`: (Optional) Number of worker processes (default: auto)
+### Advanced Examples
 
-## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+```bash
+# High-resolution output for printing
+facecrop headshots/ --size 2048 --output prints/
+
+# Quick preview processing (single core)
+facecrop samples/ --size 128 --workers 1
+
+# Batch process with custom output
+facecrop team_photos/ -s 512 -o website/avatars/ -w 16
+```
+
+### Python API
+
+```python
+from facecrop import resize_and_center_face, process_images
+
+# Process single image
+image = resize_and_center_face("photo.jpg", size=224)
+if image:
+    image.save("output.jpg")
+
+# Batch processing
+successful, failed = process_images(
+    "photos/",
+    size=512,
+    output_folder="processed/",
+    workers=4
+)
+print(f"Processed: {successful}, Failed: {failed}")
+```
+
+## ⚙️ Options
+
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `input` | - | Path to image or directory | *required* |
+| `--output` | `-o` | Output directory | `./output` |
+| `--size` | `-s` | Output size in pixels (square) | `224` |
+| `--workers` | `-w` | Number of CPU cores to use | auto |
+| `--version` | `-v` | Show version | - |
+| `--quiet` | `-q` | Suppress progress output | `false` |
+
+## 🏗️ How It Works
+
+1. **Face Detection**: Uses dlib's HOG-based detector to locate faces
+2. **Smart Cropping**: Centers crop on the first detected face
+3. **Fallback**: If no face found, crops from image center
+4. **Resizing**: Scales to exact square dimensions
+5. **Output**: Saves as `{filename}.out{extension}`
+
+## 📋 Requirements
+
+- Python 3.8+
+- OpenCV (cv2)
+- dlib
+- Pillow
+- tqdm
+- loguru
+
+## 🧪 Testing
+
+```bash
+# Run tests
+pytest
+
+# With coverage
+pytest --cov=facecrop --cov-report=html
+
+# Run tests in parallel
+pytest -n auto
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please check out our [Contributing Guide](CONTRIBUTING.md).
+
+```bash
+# Setup development environment
+git clone https://github.com/saikatkumardey/FaceCrop.git
+cd FaceCrop
+pip install -e ".[dev]"
+
+# Run formatters and linters
+black src/ tests/
+ruff check src/ tests/
+mypy src/
+
+# Run tests
+pytest
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for details.
+
+## 🙏 Acknowledgments
+
+- Built with [dlib](http://dlib.net/) for face detection
+- Inspired by the need for better profile picture cropping
+
+## 📮 Support
+
+- 🐛 [Report bugs](https://github.com/saikatkumardey/FaceCrop/issues)
+- 💡 [Request features](https://github.com/saikatkumardey/FaceCrop/issues)
+- ⭐ Star this repo if you find it useful!
